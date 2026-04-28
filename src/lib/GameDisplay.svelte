@@ -78,30 +78,41 @@
 	}
 
 	async function startGame() {
-		hideElement(intro);
-		showElement(progressBar);
+    hideElement(intro);
+    showElement(progressBar);
 
-		await downloadFileToCheerpJ();
-		hideElement(progressBar);
-		showElement(display);
-		showElement(timer);
+    // 1. Download the game (Wait for this)
+    await downloadFileToCheerpJ();
 
-		const timerChecker = setInterval(() => {
-			timeLeft++;
-			if (timeLeft < 0) {
-				clearInterval(timerChecker);
-				hideElement(display);
-				hideElement(timer);
-				showElement(timeoutInfo);
-				document.exitPointerLock();
-				document.activeElement?.blur();
-				tryPlausible('EndDemo');
-			}
-		}, 1000);
+    hideElement(progressBar);
+    showElement(display);
+    showElement(timer);
 
-		tryPlausible('Play');
-		await cheerpjRunMain('net.minecraft.client.Minecraft', pathJarLibs);
-	}
+    // 2. Start the timer logic
+    const timerChecker = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            clearInterval(timerChecker);
+            hideElement(display);
+            hideElement(timer);
+            showElement(timeoutInfo);
+            document.exitPointerLock?.();
+            
+            // Call analytics WITHOUT 'await'
+            tryPlausible('EndDemo');
+        }
+    }, 1000);
+
+    // 3. CRITICAL FIX: Trigger analytics WITHOUT 'await'
+    // This allows the code to move immediately to cheerpjRunMain
+    // even if the POST request is hanging with a 522 error.
+    tryPlausible('Play'); 
+
+    console.log("Launching Minecraft...");
+    
+    // 4. Run the game
+    await cheerpjRunMain('net.minecraft.client.Minecraft', pathJarLibs);
+}
 
 	async function downloadFileToCheerpJ() {
     const response = await fetch(urlDownloadMinecraft);

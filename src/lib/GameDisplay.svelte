@@ -7,7 +7,7 @@
 
 	const pathJarMinecraft = '/files/client_1.2.5.jar';
 	const urlDownloadMinecraft =
-		'https://piston-data.mojang.com/v1/objects/4a2fac7504182a97dcbcd7560c6392d7c8139928/client.jar';
+		'https://download1650.mediafire.com/ajx8i6wbfblgKgz8gMx4tL2Mt4PL_dSF1EzqoGsT_hBMvROJJYPmDkiISkgIqzERt7X34EhLGcy17UQighoHhgSN74WbBp4TrQYyt05mnzMwbZC68LK_zOqe1tm43-unkgANkvEHEI8fRpWgY4tvD7mRzNzvg7ULXMQOWwYNqEy9Pg/yj70442e5hhhup5/client.jar';
 	const pathJarLibs = `/app/lwjgl/lwjgl-2.9.3.jar:/app/lwjgl/lwjgl_util-2.9.3.jar:${pathJarMinecraft}`;
 
 	let loading: HTMLDivElement;

@@ -104,34 +104,47 @@
 	}
 
 	async function downloadFileToCheerpJ() {
-		const response = await fetch(urlDownloadMinecraft);
-		const reader = response.body.getReader();
-		const contentLength = +response.headers.get('Content-Length');
+    const response = await fetch(urlDownloadMinecraft);
+    const reader = response.body.getReader();
+    // Keep contentLength for the progress bar UI only
+    const contentLength = +response.headers.get('Content-Length') || 0;
 
-		const bytes = new Uint8Array(contentLength);
-		progressBar.value = 0;
-		progressBar.max = contentLength;
+    let chunks = []; // Store chunks here
+    let pos = 0;
+    
+    progressBar.value = 0;
+    progressBar.max = contentLength;
 
-		let pos = 0;
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) break;
-			bytes.set(value, pos);
-			pos += value.length;
-			progressBar.value = pos;
-			progressBar.max = contentLength;
-		}
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        chunks.push(value);
+        pos += value.length;
+        
+        // Update progress bar
+        progressBar.value = pos;
+        if (pos > progressBar.max) progressBar.max = pos; 
+    }
 
-		// Write to CheerpJ filesystem
-		return new Promise((resolve, reject) => {
-			var fds = [];
-			cheerpOSOpen(fds, pathJarMinecraft, 'w', (fd) => {
-				cheerpOSWrite(fds, fd, bytes, 0, bytes.length, (w) => {
-					cheerpOSClose(fds, fd, resolve);
-				});
-			});
-		});
-	}
+    // Concatenate all chunks into a single Uint8Array
+    const bytes = new Uint8Array(pos);
+    let offset = 0;
+    for (const chunk of chunks) {
+        bytes.set(chunk, offset);
+        offset += chunk.length;
+    }
+
+    // Write to CheerpJ filesystem
+    return new Promise((resolve, reject) => {
+        var fds = [];
+        cheerpOSOpen(fds, pathJarMinecraft, 'w', (fd) => {
+            cheerpOSWrite(fds, fd, bytes, 0, bytes.length, (w) => {
+                cheerpOSClose(fds, fd, resolve);
+            });
+        });
+    });
+}
 
 	onMount(async () => {
 		loading = document.getElementById('loading');

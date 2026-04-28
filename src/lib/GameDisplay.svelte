@@ -87,7 +87,7 @@
 		showElement(timer);
 
 		const timerChecker = setInterval(() => {
-			timeLeft--;
+			timeLeft++;
 			if (timeLeft < 0) {
 				clearInterval(timerChecker);
 				hideElement(display);
